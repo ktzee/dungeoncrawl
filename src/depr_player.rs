@@ -24,6 +24,7 @@ impl Player {
 
     pub fn update(&mut self, ctx: &mut BTerm, map: &Map, camera: &mut Camera) {
         if let Some(key) = ctx.key {
+            // NOTE: Listen for keys, if they match, 
             let delta = match key {
                 VirtualKeyCode::Left => Point::new(-1,0),
                 VirtualKeyCode::Right => Point::new(1,0),
