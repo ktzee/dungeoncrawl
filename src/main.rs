@@ -36,11 +36,20 @@ struct State {
 impl State {
     
     fn new() -> Self {
+        // NOTE: Initialize world and resources
         let mut ecs = World::default();
         let mut resources = Resources::default();
         let mut rng = RandomNumberGenerator::new();
         let map_builder = MapBuilder::new(&mut rng);
         spawn_player(&mut ecs, map_builder.player_start);
+        // NOTE: Go through rooms, skip the first, transform each room entry to a Point using
+        // .center(), run a closure on each location with for_each and call spawn_monster on each point
+        map_builder.rooms
+            .iter()
+            .skip(1)
+            .map(|r| r.center())
+            .for_each(|pos| spawn_monster(&mut ecs, &mut rng, pos));
+        // NOTE: Add map and camera to resources
         resources.insert(map_builder.map);
         resources.insert(Camera::new(map_builder.player_start));
 

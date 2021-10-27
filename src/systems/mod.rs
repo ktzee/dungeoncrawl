@@ -2,6 +2,7 @@ use crate::prelude::*;
 mod player_input;
 mod map_render;
 mod entity_render;
+mod collisions;
 
 pub fn build_scheduler() -> Schedule {
     Schedule::builder()

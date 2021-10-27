@@ -25,5 +25,6 @@ pub fn map_render(#[resource] map: &Map, #[resource] camera: &Camera) {
             }
         }
     }
+    // NOTE: we use 0 for ordering as we want the map to render first
     draw_batch.submit(0).expect("Batch error");
 }
