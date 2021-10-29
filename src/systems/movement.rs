@@ -10,7 +10,7 @@ pub fn movement(
     ecs: &mut SubWorld,
     commands: &mut CommandBuffer
 ) {
-    ifmap.can_enter_tile(want_move.destination) {
+    if map.can_enter_tile(want_move.destination) {
         commands.add_component(want_move.entity, want_move.destination);
 
         if ecs.entry_ref(want_move.entity)
@@ -21,5 +21,3 @@ pub fn movement(
     }
     commands.remove(*entity);
 }
-
-// TODO: "Receiving Messages and Moving" paragraph
