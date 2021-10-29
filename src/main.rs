@@ -5,6 +5,7 @@ mod camera;
 mod components;
 mod spawner;
 mod systems;
+mod turn_state;
 
 // simplify module access creating prelude
 mod prelude {
@@ -22,6 +23,7 @@ mod prelude {
     pub use crate::components::*;
     pub use crate::spawner::*;
     pub use crate::systems::*;
+    pub use crate::turn_state::*;
 }
 
 // use prelude to make it available to the main scope
@@ -30,7 +32,9 @@ use prelude::*;
 struct State {
     ecs: World,
     resources: Resources,
-    systems: Schedule,
+    input_systems: Schedule,
+    player_systems: Schedule,
+    monster_systems: Schedule,
 }
 
 impl State {
@@ -52,11 +56,14 @@ impl State {
         // NOTE: Add map and camera to resources
         resources.insert(map_builder.map);
         resources.insert(Camera::new(map_builder.player_start));
+        resources.insert(TurnState::AwaitingInput);
 
         Self {
             ecs,
             resources,
-            systems: build_scheduler()
+            input_systems: build_input_scheduler(),
+            player_systems: build_player_scheduler(),
+            monster_systems: build_monster_scheduler()
         }
 
     }
@@ -69,7 +76,23 @@ impl GameState for State {
         ctx.set_active_console(1);
         ctx.cls();
         self.resources.insert(ctx.key);
-        self.systems.execute(&mut self.ecs, &mut self.resources);
+        // NOTE: below, first we request a TurnState resource from the ECS.
+        // We get an Option, so we need to unpack. A turn state exists for sure, so no error checking
+        // Finally, we clone it to duplicate the state. The resurce is no longer borrowed.
+        // We're using a copy to get around the borrow checker
+        let current_state = self.resources.get::<TurnState>().unwrap().clone();
+        match current_state {
+            TurnState::AwaitingInput => self.input_systems.execute(
+                &mut self.ecs,
+                &mut self.resources
+            ),
+            TurnState::PlayerTurn => {
+                self.player_systems.execute(&mut self.ecs, &mut self.resources);
+            }
+            TurnState::MonsterTurn => {
+                self.monster_systems.execute(&mut self.ecs, &mut self.resources)
+            }
+        }
         render_draw_buffer(ctx).expect("Render error");
     }
 }

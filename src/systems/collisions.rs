@@ -5,10 +5,19 @@ use crate::prelude::*;
 #[read_component(Player)]
 #[read_component(Enemy)]
 pub fn collisions(ecs: &mut SubWorld, commands: &mut CommandBuffer) {
-    let mut player_pos = <&Point>::query()
+    let mut player_pos = Point::zero();
+    let mut players = <&Point>::query()
         .filter(component::<Player>());
     
-    let mut enemies = <(Entity, &Point)>
-}
+    players.iter(ecs).for_each(|pos| player_pos = *pos);
+    
+    let mut enemies = <(Entity, &Point)>::query()
+        .filter(component::<Enemy>());
 
-// TODO: Collision detection chapter
+    enemies
+        .iter(ecs)
+        .filter(|(_,pos)| **pos == player_pos)
+        .for_each(|(entity, _)| {
+            commands.remove(*entity);
+        })
+}
